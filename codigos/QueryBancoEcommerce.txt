@@ -1,0 +1,257 @@
+-- criando banco de dados
+
+create schema ecommerce;
+use ecommerce;
+
+-- criando tabelas
+-------------------------------------------------
+-- client
+create table Cliente (
+	IdCliente int auto_increment primary key,
+    Pnome varchar(45),
+    NomeMeioIncial char(1),
+    Sobrenome varchar(45),
+    CPF char(11) not null ,
+    Endereço varchar(255),
+    DataNascimento date,
+    CONSTRAINT unique_cpf UNIQUE (cpf)
+);
+update cliente
+set PJ_PF = "PF" where CPF <= 90000000;
+
+select*from cliente;
+
+alter table cliente
+add column PJ_PF enum("PJ","PF") not null;
+
+insert into cliente(Pnome,NomeMeioInicial,Sobrenome,CPF,Endereço)
+		values  ("Jone","K","Arakaki",8565426649,"Rua Congonhas 549, Centro - Cidade Inamar"),
+				("Kenji","S","Arashiro",6654654646,"Rua Alameda Barão de Piracicaba 589, Centro - São Paulo"),
+                ("Lara","N","Pimentel",6872129874,"Avenida Pinhais Vinha 1009, Centro - São Paulo"),
+                ("Leticia","A","Almeida",123276848,"Rua Lavras 861, Centro - São Paulo"),
+                ("Carolina","N","Assis",168214631,"Avenida Japão 954, Centro - São Paulo"),
+                ("Caroline","B","Cruz",19836442,"Rua Alameda dos engenheiros 28, Centro - São Paulo");
+                
+
+select * from cliente;
+
+--------------------------------------------------------------------------
+
+-- product
+create table Produto(
+	IdProduto int auto_increment primary key,
+    Categoria ENUM("Brinquedo", "Alimento", "Vestimenta", "Eletronico", "Moveis") not null,
+    Valor varchar(45) not null,
+    Pnome varchar(45),
+    Avaliação Float default 0,
+    ClassificaçãoCriança bool,
+    Dimensão varchar(10)
+);
+desc produto;
+
+insert into produto(Pnome,classificaçãoCriança,categoria,avaliação,dimensão, valor) 
+values  ("Cubo Magico 3x3x3",True,"Brinquedo","4",null,80),
+		("Megaminx",True,"Brinquedo","5",null,100),
+        ("Energético",false,"Alimento","2",null,15),
+        ("Microondas",false,"Eletronico","4",null,400),
+        ("Aspirador de po",false,"Eletronico","4",null,200);
+        
+select * from produto;
+        
+
+alter table produto auto_increment = 1;
+/*
+Para continuar no desafio. termine de implementar a tabela e crie a conexão com as tabelas necessárias
+Além disso, reflita essa modificação do diagrama entidade relacional
+criar constraints relacionadas ao pagamento
+*/
+
+---------------------------------------------------------------------------------
+
+select * from pedido; 
+
+-- orders
+create table Pedido(
+	IdPedido int primary key auto_increment,
+    IdCliente int,
+    Pedido_Status ENUM("Em andamento", "Em processamento", "Enviado", "Entregue") default "Em processamento",
+    Pedido_Descrição varchar(255) default  "Compra Via APP",
+    Frete float default 0,
+    FormaPagamento int,
+    constraint fk_IdCliente_Pedido foreign key(IdCliente) references Cliente(IdCliente),
+    constraint fk_FormaPagamento foreign key(FormaPgamento) references FormaPagamento(IdFormaPagamento)
+);
+
+alter table pedido
+drop column pagamentoboleto,
+add column FormaPagamento int,
+add constraint fk_formaPagamento foreign key (FormaPagamento) references formapagamento(idFormapagamento);
+
+select * from pedido;
+
+
+select * from pedido;
+insert into pedido (IdCliente,Pedido_Status,Pedido_Descrição,Frete,PagamentoBoleto)
+values	(17,default,"Compra Via APP",20,1),
+		(25,default,"Compra Via Site",15,1),
+        (13,"Entregue","Compra Via APP",50,0),
+        (29,"Enviado","Compra Via APP",default,0),
+        (10,"Enviado","Compra Via APP",default,1),
+		(15,"Em andamento","Compra Via Site",20,0),
+        (3,"Entregue","Compra Via Site",30,0),
+        (29,"Enviado","Compra Via Site",default,0);
+        
+select * from cliente;
+
+---------------------------------------------
+
+create table FormaPagamento(
+	IdFormaPagamento int auto_increment primary key not null,
+    TipoPagamento varchar(50)
+);
+insert into FormaPagamento values(1,"Cartão de Debito"),(2,"Cartão de Crédito"),(3,"Boleto"),(4,"Pix");
+
+---------------------------------------------
+-- product storage
+create table Estoque(
+	IdEstoque int auto_increment primary key,
+    Localidade varchar(45),
+    Quantidade int default 0
+);
+
+insert into estoque (Localidade,Quantidade) 
+values  ("Rio de Janeiro",1000),
+		("Rio de Janeiro",500),
+        ("Rio de Janeiro",250),
+		("São Paulo",10),
+        ("São Paulo",100),
+        ("São Paulo",10),
+        ("Brasilia",60);
+        
+       
+
+---------------------------------------------------------------
+
+-- storagelocation
+create table ProdutoNoEstoque(
+	IdProduto int,
+    IdEstoque int,
+    localização varchar(45),
+    primary key(IdProduto,IdEstoque),
+    constraint fk_IdProduto_QuantidadeProdutoEmEstoque foreign key (IdProduto) references Produto(IdProduto),
+    constraint fk_IdEstoque_QuantidadeProdutoEmEstoque foreign key (IdEstoque) references Estoque(IdEstoque)
+);
+
+select * from produto;
+select * from Estoque;
+insert into ProdutoNoEstoque(IdProduto,IdEstoque,Localização)
+values  (2,6,"SP"),
+		(5,4,"SP"),
+        (4,5,"SP"),
+		(15,5,"SP"),
+        (12,5,"SP"),
+		(1,6,"SP"),
+        (6,6,"SP");
+
+select * from ProdutoNoEstoque;
+
+-------------------------------------------------------
+-- supplier
+create table Fornecedor(
+	IdFornecedor int auto_increment primary key,
+    RazãoSocial varchar(255) not null,
+    CNPJ char (15),
+    Contato char(11),
+    constraint unq_CNPJ_Fornecedor unique (CNPJ)
+);
+
+insert into fornecedor(RazãoSocial,CNPJ,contato)
+values  ("Comércio A",2654234682,11963565342),
+		("Comércio B",68532153241,11923548653),
+        ("Comércio C",653241653242,11562216658),
+        ("Comércio D",1652486545,11654989856),
+		("Comércio E",2426532416,11569316658),
+        ("Comércio F",24135465341,11216596658);
+------------------------------------------------------------
+
+-- seller
+create table VendedorTerceiro(
+	IdVendedorTerceiro int auto_increment primary key,
+    RazãoSocial varchar(255) not null,
+    NomeFantasia varchar(255),
+    CNPJ char(15),
+    CPF char(11),
+    Localidade varchar(45),
+    Contato char(11),
+    constraint unq_CPF_VendedorTerceiro unique(CPF),
+    constraint unq_CNPJ_VendedorTerceiro unique(CNPJ)
+    
+);
+
+insert into vendedorTerceiro (RazãoSocial,NomeFantasia,CNPJ,CPF,Localidade,Contato)
+values  ("Terceiro A",null,12345456121,null,"Rio de Janeiro",21656269996),
+		("Terceiro B",null,null,124365478,"Rio de Janeiro",21659916265),
+        ("Terceiro C",null,154674266555,null,"São Paulo",1166654589);
+        
+----------------------------------------------------------
+
+-- product seller
+-- tabela mostra quantidade de produtos e quais produtos está sendo comprado por um vendedor terceiro
+create table ProdutoVendedor(
+	IdVendedorTerceiro int,
+    IdProduto int,
+    Quantidade int not null,
+    constraint pk_composta primary key(IdVendedorTerceiro,IdProduto),
+    constraint fk_Produto_ProdutoVendedor foreign key (IdProduto) references Produto(Idproduto),
+    constraint fk_Vendedor_Terceiro foreign key(IdVendedorTerceiro) references VendedorTerceiro(IdVendedorTerceiro)
+    
+);
+Select * from vendedorterceiro;
+select * from produto;
+
+insert into produtoVendedor(IdVendedorTerceiro,IdProduto,Quantidade)
+values  (3,18,65),
+		(3,13,13),
+        (3,15,100),
+        (3,14,15),
+        (3,16,67),
+        (3,17,20);
+----------------------------------------------------------
+
+-- product order
+create table ProdutoPedido(
+	IdProduto int,
+    IdPedido int,
+    Quantidade int,
+    Disponibilidade ENUM('Disponivel', 'Fora de estoque'),
+    constraint pk_produto_pedido primary key(IdProduto,IdPedido),
+    constraint fk_IdProduto_ProdutoPedido foreign key(IdProduto) references Produto(IdProduto),
+    constraint fk_IdPedido_ProdutoPedido foreign Key (IdPedido) references Pedido(IdPedido)
+);
+select * from produtopedido;
+insert into produtopedido(IdProduto,IdPedido,Quantidade, Disponibilidade) 
+value   (1,5,2,null),
+		(2,5,1,null),
+        (3,6,1,null);
+
+
+------------------------------------------------------------------- 
+-- product suplier 
+create table produtoFornecedor(
+	IdFornecedor int,
+    IdProduto int,
+    Quantidade int not null,
+    primary key(IdFornecedor,IdProduto),
+    constraint fk_IdFornecedor_produtoFornecedor foreign key (IdFornecedor) references Fornecedor(IdFornecedor),
+    constraint fk_Idproduto_produtoFornecedor foreign key (IdProduto) references Produto(IdProduto)
+);
+
+
+insert into produtofornecedor(IdFornecedor,IdProduto,Quantidade) 
+values  (4,1,500),
+		(4,2,400),
+        (5,4,633),
+        (6,3,5),
+        (5,5,10);
+        
+        
