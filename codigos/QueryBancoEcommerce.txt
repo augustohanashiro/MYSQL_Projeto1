@@ -1,3 +1,4 @@
+
 -- criando banco de dados
 
 create schema ecommerce;
